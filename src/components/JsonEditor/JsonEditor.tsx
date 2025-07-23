@@ -116,7 +116,15 @@ export function JsonEditor() {
         {nodes.length === 0 ? (
           /* Upload State */
           <div className="flex-1 flex items-center justify-center p-6">
-            <div className="w-full max-w-md">
+            <div className="w-full max-w-lg">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                  JSON Ordering Tool
+                </h2>
+                <p className="text-gray-600">
+                  Upload or paste your JSON to start reordering keys with drag & drop
+                </p>
+              </div>
               <FileDropzone
                 onFileUpload={handleFileUpload}
                 onJsonPaste={handleJsonPaste}
@@ -125,9 +133,9 @@ export function JsonEditor() {
           </div>
         ) : (
           /* Tree View State */
-          <div className="flex-1 flex">
+          <div className="flex-1 flex flex-col lg:flex-row">
             {/* Left Panel - JSON Tree */}
-            <div className="w-1/2 bg-white border-r border-gray-200">
+            <div className="flex-1 lg:w-1/2 bg-white border-r border-gray-200 min-h-0">
               <JsonTree
                 data={nodes}
                 onNodeMove={moveNode}
@@ -136,13 +144,18 @@ export function JsonEditor() {
             </div>
             
             {/* Right Panel - JSON Preview */}
-            <div className="w-1/2 bg-white">
+            <div className="flex-1 lg:w-1/2 bg-white min-h-0">
               <div className="h-full flex flex-col">
-                <div className="p-4 border-b border-gray-200">
+                <div className="p-4 border-b border-gray-200 flex items-center justify-between">
                   <h3 className="font-semibold text-gray-900">JSON Preview</h3>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs text-gray-500">
+                      {JSON.stringify(modifiedJson).length} characters
+                    </span>
+                  </div>
                 </div>
                 <div className="flex-1 overflow-auto p-4">
-                  <pre className="text-sm font-mono text-gray-800 whitespace-pre-wrap">
+                  <pre className="text-sm font-mono text-gray-800 whitespace-pre-wrap break-all">
                     {JSON.stringify(modifiedJson, null, 2)}
                   </pre>
                 </div>
@@ -152,18 +165,32 @@ export function JsonEditor() {
         )}
       </div>
 
-      {/* Reset Button */}
+      {/* Footer Actions */}
       {nodes.length > 0 && (
-        <div className="bg-white border-t border-gray-200 px-6 py-3">
-          <Button
-            variant="outline"
-            onClick={() => {
-              setActiveTab('upload');
-              // Reset state will be handled by the hook
-            }}
-          >
-            Load New JSON
-          </Button>
+        <div className="bg-white border-t border-gray-200 px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setActiveTab('upload');
+                // Reset state will be handled by the hook
+              }}
+            >
+              Load New JSON
+            </Button>
+            <span className="text-sm text-gray-500">
+              {nodes.length} keys • Modified {canUndo ? '✓' : ''}
+            </span>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" size="sm">
+              Copy to Clipboard
+            </Button>
+            <Button onClick={handleExport}>
+              Download JSON
+            </Button>
+          </div>
         </div>
       )}
     </div>

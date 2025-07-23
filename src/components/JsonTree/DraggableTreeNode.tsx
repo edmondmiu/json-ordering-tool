@@ -5,6 +5,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { ChevronDown, ChevronRight, Copy, Edit2, GripVertical } from 'lucide-react';
 import { JsonNode } from '@/types';
+import { DropIndicator } from '@/components/ui/DropIndicator';
 
 interface DraggableTreeNodeProps {
   node: JsonNode;
@@ -13,6 +14,7 @@ interface DraggableTreeNodeProps {
   isLast?: boolean;
   depth?: number;
   isDragOverlay?: boolean;
+  dragOverId?: string | null;
 }
 
 export function DraggableTreeNode({ 
@@ -21,7 +23,8 @@ export function DraggableTreeNode({
   searchTerm, 
   isLast = false, 
   depth = 0,
-  isDragOverlay = false
+  isDragOverlay = false,
+  dragOverId = null
 }: DraggableTreeNodeProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(node.key);
@@ -105,16 +108,28 @@ export function DraggableTreeNode({
     navigator.clipboard.writeText(JSON.stringify(node.value, null, 2));
   };
 
+  const isDropTarget = dragOverId === node.id;
+
   return (
-    <div className="select-none">
+    <div className="select-none relative">
+      {/* Drop indicators */}
+      {isDropTarget && !isDragOverlay && (
+        <>
+          <DropIndicator position="before" isVisible={true} />
+          <DropIndicator position="inside" isVisible={true} />
+          <DropIndicator position="after" isVisible={true} />
+        </>
+      )}
+      
       <div
         ref={setNodeRef}
         style={style}
         data-node-id={node.id}
         className={`
-          flex items-center py-1 px-2 rounded group transition-colors
+          flex items-center py-1 px-2 rounded group transition-colors relative
           ${isDragOverlay ? 'bg-blue-50 shadow-lg border border-blue-200' : 'hover:bg-gray-50'}
           ${isDragging ? 'z-50' : ''}
+          ${isDropTarget ? 'bg-blue-50' : ''}
         `}
         {...attributes}
         {...listeners}
@@ -214,6 +229,7 @@ export function DraggableTreeNode({
               searchTerm={searchTerm}
               isLast={index === node.children!.length - 1}
               depth={depth + 1}
+              dragOverId={dragOverId}
             />
           ))}
         </div>

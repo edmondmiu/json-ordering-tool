@@ -15,7 +15,7 @@ import { JsonTreeProps } from '@/types';
 import { DraggableTreeNode } from './DraggableTreeNode';
 import { Button } from '@/components/ui/Button';
 import { useDragDrop, flattenNodesForDnd } from '@/hooks/useDragDrop';
-import { findNodeById } from '@/utils/jsonUtils';
+import { findNodeById, expandAllNodes, collapseAllNodes } from '@/utils/jsonUtils';
 
 export function JsonTree({ data, onNodeMove, onNodeToggle, searchTerm: initialSearchTerm }: JsonTreeProps) {
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm || '');
@@ -30,6 +30,7 @@ export function JsonTree({ data, onNodeMove, onNodeToggle, searchTerm: initialSe
 
   const {
     activeId,
+    overId,
     sensors,
     handleDragStart,
     handleDragOver,
@@ -41,13 +42,13 @@ export function JsonTree({ data, onNodeMove, onNodeToggle, searchTerm: initialSe
   const activeNode = activeId ? findNodeById(data, activeId) : null;
 
   const expandAll = () => {
-    // TODO: Implement expand all functionality
-    console.log('Expand all nodes');
+    const expandedNodes = expandAllNodes(data);
+    expandedNodes.forEach(node => onNodeToggle(node.id));
   };
 
   const collapseAll = () => {
-    // TODO: Implement collapse all functionality  
-    console.log('Collapse all nodes');
+    const collapsedNodes = collapseAllNodes(data);
+    collapsedNodes.forEach(node => onNodeToggle(node.id));
   };
 
   if (!data || data.length === 0) {
@@ -147,6 +148,7 @@ export function JsonTree({ data, onNodeMove, onNodeToggle, searchTerm: initialSe
                     onToggle={onNodeToggle}
                     searchTerm={searchTerm}
                     isLast={index === filteredData.length - 1}
+                    dragOverId={overId}
                   />
                 ))}
               </div>

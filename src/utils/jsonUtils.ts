@@ -204,3 +204,39 @@ function insertNodeAtPosition(
   
   return false;
 }
+
+export function expandAllNodes(nodes: JsonNode[]): JsonNode[] {
+  const nodesToExpand: JsonNode[] = [];
+  
+  function traverse(nodeList: JsonNode[]) {
+    nodeList.forEach(node => {
+      if ((node.type === 'object' || node.type === 'array') && !node.expanded) {
+        nodesToExpand.push(node);
+      }
+      if (node.children) {
+        traverse(node.children);
+      }
+    });
+  }
+  
+  traverse(nodes);
+  return nodesToExpand;
+}
+
+export function collapseAllNodes(nodes: JsonNode[]): JsonNode[] {
+  const nodesToCollapse: JsonNode[] = [];
+  
+  function traverse(nodeList: JsonNode[]) {
+    nodeList.forEach(node => {
+      if ((node.type === 'object' || node.type === 'array') && node.expanded) {
+        nodesToCollapse.push(node);
+      }
+      if (node.children) {
+        traverse(node.children);
+      }
+    });
+  }
+  
+  traverse(nodes);
+  return nodesToCollapse;
+}

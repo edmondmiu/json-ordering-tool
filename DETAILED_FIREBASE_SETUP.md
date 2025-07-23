@@ -100,6 +100,15 @@ Firebase Console → Hosting → [GitHub Button] → Authorize → Select Repo �
    🌐 Icon    Various places  GitHub login   Pick repo  Auto-setup
 ```
 
+## ✅ Update: Firebase CLI Success!
+
+The command `firebase init hosting:github` has successfully:
+- Created service account: `github-action-1024994991`
+- Uploaded the secret `FIREBASE_SERVICE_ACCOUNT_JSON_ORDERING_TOOL` to GitHub
+- GitHub Actions should now work automatically!
+
+Test it by pushing any change to the main branch.
+
 ## Still Having Trouble?
 
 The GitHub Actions are now fixed to not fail, so you can also just continue with manual deployment:

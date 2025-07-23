@@ -1,7 +1,7 @@
 export interface JsonNode {
   id: string;
   key: string;
-  value: any;
+  value: JsonValue;
   type: 'object' | 'array' | 'string' | 'number' | 'boolean' | 'null';
   children?: JsonNode[];
   parent?: string;
@@ -27,10 +27,10 @@ export interface FileUploadProps {
 }
 
 export interface JsonEditorState {
-  originalJson: any;
-  modifiedJson: any;
+  originalJson: JsonValue | null;
+  modifiedJson: JsonValue | null;
   nodes: JsonNode[];
-  history: any[];
+  history: JsonValue[];
   currentHistoryIndex: number;
   isValid: boolean;
   errors: string[];

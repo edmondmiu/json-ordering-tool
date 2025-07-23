@@ -1,10 +1,21 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, ExpandAll, CollapseAll } from 'lucide-react';
+import { Search, Expand, Minimize2 } from 'lucide-react';
+import {
+  DndContext,
+  DragOverlay,
+  closestCenter,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import { JsonTreeProps } from '@/types';
-import { TreeNode } from './TreeNode';
+import { DraggableTreeNode } from './DraggableTreeNode';
 import { Button } from '@/components/ui/Button';
+import { useDragDrop, flattenNodesForDnd } from '@/hooks/useDragDrop';
+import { findNodeById } from '@/utils/jsonUtils';
 
 export function JsonTree({ data, onNodeMove, onNodeToggle, searchTerm: initialSearchTerm }: JsonTreeProps) {
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm || '');
@@ -16,6 +27,18 @@ export function JsonTree({ data, onNodeMove, onNodeToggle, searchTerm: initialSe
         (typeof node.value === 'string' && node.value.toLowerCase().includes(searchTerm.toLowerCase()))
       )
     : data;
+
+  const {
+    activeId,
+    sensors,
+    handleDragStart,
+    handleDragOver,
+    handleDragEnd,
+    handleDragCancel,
+  } = useDragDrop(data, onNodeMove);
+
+  const flattenedNodes = flattenNodesForDnd(filteredData);
+  const activeNode = activeId ? findNodeById(data, activeId) : null;
 
   const expandAll = () => {
     // TODO: Implement expand all functionality
@@ -63,7 +86,7 @@ export function JsonTree({ data, onNodeMove, onNodeToggle, searchTerm: initialSe
             onClick={expandAll}
             title="Expand all"
           >
-            <ExpandAll className="h-4 w-4" />
+            <Expand className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
@@ -71,7 +94,7 @@ export function JsonTree({ data, onNodeMove, onNodeToggle, searchTerm: initialSe
             onClick={collapseAll}
             title="Collapse all"
           >
-            <CollapseAll className="h-4 w-4" />
+            <Minimize2 className="h-4 w-4" />
           </Button>
         </div>
       </div>
@@ -101,20 +124,45 @@ export function JsonTree({ data, onNodeMove, onNodeToggle, searchTerm: initialSe
       <div className="flex-1 overflow-auto p-2">
         {filteredData.length === 0 ? (
           <div className="flex items-center justify-center h-32 text-gray-500">
-            <p>No matches found for "{searchTerm}"</p>
+            <p>No matches found for &quot;{searchTerm}&quot;</p>
           </div>
         ) : (
-          <div className="space-y-1">
-            {filteredData.map((node, index) => (
-              <TreeNode
-                key={node.id}
-                node={node}
-                onToggle={onNodeToggle}
-                searchTerm={searchTerm}
-                isLast={index === filteredData.length - 1}
-              />
-            ))}
-          </div>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+            onDragCancel={handleDragCancel}
+          >
+            <SortableContext 
+              items={flattenedNodes.map(node => node.id)} 
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-1">
+                {filteredData.map((node, index) => (
+                  <DraggableTreeNode
+                    key={node.id}
+                    node={node}
+                    onToggle={onNodeToggle}
+                    searchTerm={searchTerm}
+                    isLast={index === filteredData.length - 1}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+            
+            <DragOverlay>
+              {activeNode ? (
+                <DraggableTreeNode
+                  node={activeNode}
+                  onToggle={onNodeToggle}
+                  searchTerm={searchTerm}
+                  isDragOverlay={true}
+                />
+              ) : null}
+            </DragOverlay>
+          </DndContext>
         )}
       </div>
     </div>

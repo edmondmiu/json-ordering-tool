@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { JsonNode, JsonEditorState } from '@/types';
-import { parseJsonToNodes, validateJson, nodesToJson, generateId } from '@/utils/jsonUtils';
+import { parseJsonToNodes, validateJson, nodesToJson, generateId, moveNodeInTree } from '@/utils/jsonUtils';
 
 export function useJsonParser() {
   const [state, setState] = useState<JsonEditorState>({
@@ -28,10 +28,10 @@ export function useJsonParser() {
 
     const nodes = parseJsonToNodes(validation.parsed!);
     const newState = {
-      originalJson: validation.parsed,
-      modifiedJson: validation.parsed,
+      originalJson: validation.parsed!,
+      modifiedJson: validation.parsed!,
       nodes,
-      history: [validation.parsed],
+      history: [validation.parsed!],
       currentHistoryIndex: 0,
       isValid: true,
       errors: []
@@ -69,11 +69,18 @@ export function useJsonParser() {
 
   const moveNode = useCallback((draggedId: string, targetId: string, position: 'before' | 'after' | 'inside') => {
     setState(prev => {
-      const newNodes = [...prev.nodes];
-      // Implementation for moving nodes will be added with drag-drop functionality
+      const newNodes = moveNodeInTree(prev.nodes, draggedId, targetId, position);
+      const newJson = nodesToJson(newNodes);
+      
+      const newHistory = prev.history.slice(0, prev.currentHistoryIndex + 1);
+      newHistory.push(newJson);
+      
       return {
         ...prev,
-        nodes: newNodes
+        nodes: newNodes,
+        modifiedJson: newJson,
+        history: newHistory,
+        currentHistoryIndex: newHistory.length - 1
       };
     });
   }, []);

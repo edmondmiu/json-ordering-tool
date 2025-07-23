@@ -138,3 +138,69 @@ export function findNodeById(nodes: JsonNode[], id: string): JsonNode | undefine
   }
   return undefined;
 }
+
+export function moveNodeInTree(
+  nodes: JsonNode[], 
+  draggedId: string, 
+  targetId: string, 
+  position: 'before' | 'after' | 'inside'
+): JsonNode[] {
+  // Create a deep copy of nodes
+  const newNodes = JSON.parse(JSON.stringify(nodes));
+  
+  // Find the dragged node and remove it from its current position
+  const draggedNode = findAndRemoveNode(newNodes, draggedId);
+  if (!draggedNode) return nodes;
+  
+  // Find the target node and insert the dragged node
+  insertNodeAtPosition(newNodes, draggedNode, targetId, position);
+  
+  return newNodes;
+}
+
+function findAndRemoveNode(nodes: JsonNode[], nodeId: string): JsonNode | null {
+  for (let i = 0; i < nodes.length; i++) {
+    if (nodes[i].id === nodeId) {
+      return nodes.splice(i, 1)[0];
+    }
+    
+    if (nodes[i].children) {
+      const found = findAndRemoveNode(nodes[i].children!, nodeId);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function insertNodeAtPosition(
+  nodes: JsonNode[], 
+  nodeToInsert: JsonNode, 
+  targetId: string, 
+  position: 'before' | 'after' | 'inside'
+): boolean {
+  for (let i = 0; i < nodes.length; i++) {
+    const node = nodes[i];
+    
+    if (node.id === targetId) {
+      switch (position) {
+        case 'before':
+          nodes.splice(i, 0, nodeToInsert);
+          return true;
+        case 'after':
+          nodes.splice(i + 1, 0, nodeToInsert);
+          return true;
+        case 'inside':
+          if (!node.children) node.children = [];
+          node.children.push(nodeToInsert);
+          node.expanded = true; // Auto-expand when adding children
+          return true;
+      }
+    }
+    
+    if (node.children && insertNodeAtPosition(node.children, nodeToInsert, targetId, position)) {
+      return true;
+    }
+  }
+  
+  return false;
+}

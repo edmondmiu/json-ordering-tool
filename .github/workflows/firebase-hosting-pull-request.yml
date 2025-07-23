@@ -16,8 +16,16 @@ jobs:
           cache: 'npm'
       - run: npm ci
       - run: npm run build
-      - uses: FirebaseExtended/action-firebase-deploy@v2
+      - name: Deploy to Firebase Preview
+        uses: FirebaseExtended/action-firebase-deploy@v2
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON_ORDERING_TOOL }}'
           projectId: json-ordering-tool
+        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON_ORDERING_TOOL }}
+      - name: Preview Deployment Skipped
+        if: ${{ !secrets.FIREBASE_SERVICE_ACCOUNT_JSON_ORDERING_TOOL }}
+        run: |
+          echo "🔄 Firebase preview deployment skipped - service account not configured"
+          echo "✅ Build completed successfully for PR"
+          echo "📝 To enable preview deployments, connect this repo in Firebase Console > Hosting > GitHub"

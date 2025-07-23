@@ -18,9 +18,18 @@ jobs:
           cache: 'npm'
       - run: npm ci
       - run: npm run build
-      - uses: FirebaseExtended/action-firebase-deploy@v2
+      - name: Deploy to Firebase
+        uses: FirebaseExtended/action-firebase-deploy@v2
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON_ORDERING_TOOL }}'
           channelId: live
           projectId: json-ordering-tool
+        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON_ORDERING_TOOL }}
+      - name: Deployment Skipped
+        if: ${{ !secrets.FIREBASE_SERVICE_ACCOUNT_JSON_ORDERING_TOOL }}
+        run: |
+          echo "🔄 Firebase deployment skipped - service account not configured"
+          echo "✅ Build completed successfully"
+          echo "📝 To enable auto-deployment, connect this repo in Firebase Console > Hosting > GitHub"
+          echo "🌐 Manual deployment: npm run build && firebase deploy"

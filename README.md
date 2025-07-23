@@ -83,7 +83,16 @@ npm run type     # Run TypeScript type checking
 - Use Tailwind CSS for styling
 - Maintain modular component structure
 
-## Firebase Deployment
+## Deployment
+
+### Automatic Deployment
+This project is configured for automatic deployment to Firebase Hosting via GitHub Actions:
+
+- **Production**: Deploys automatically when code is pushed to `main` branch
+- **Preview**: Creates preview deployments for pull requests
+
+### Manual Deployment
+To deploy manually:
 
 ```bash
 # Install Firebase CLI
@@ -92,12 +101,12 @@ npm install -g firebase-tools
 # Login to Firebase
 firebase login
 
-# Initialize Firebase project
-firebase init
-
 # Deploy
-firebase deploy
+npm run deploy
 ```
+
+### Live URL
+🌐 **Live Demo**: [https://json-ordering-tool.web.app](https://json-ordering-tool.web.app)
 
 ## Contributing
 

@@ -18,6 +18,13 @@ export interface JsonTreeProps {
   data: JsonNode[];
   onNodeMove: (draggedId: string, targetId: string, position: 'before' | 'after' | 'inside') => void;
   onNodeToggle: (nodeId: string) => void;
+  onNodeMoveUp: (nodeId: string) => void;
+  onNodeMoveDown: (nodeId: string) => void;
+  onNodeSelect: (nodeId: string, selected: boolean) => void;
+  onMoveSelectedUp?: () => void;
+  onMoveSelectedDown?: () => void;
+  onClearSelection?: () => void;
+  selectedNodes: Set<string>;
   searchTerm?: string;
 }
 
@@ -34,6 +41,7 @@ export interface JsonEditorState {
   currentHistoryIndex: number;
   isValid: boolean;
   errors: string[];
+  selectedNodes: Set<string>;
 }
 
 export type JsonValue = string | number | boolean | null | JsonObject | JsonArray;

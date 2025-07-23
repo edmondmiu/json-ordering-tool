@@ -11,6 +11,7 @@ export function JsonEditor() {
   const [activeTab, setActiveTab] = useState<'upload' | 'tree'>('upload');
   const {
     nodes,
+    selectedNodes,
     isValid,
     errors,
     canUndo,
@@ -18,6 +19,12 @@ export function JsonEditor() {
     parseJson,
     toggleNode,
     moveNode,
+    handleNodeMoveUp,
+    handleNodeMoveDown,
+    handleNodeSelect,
+    moveSelectedUp,
+    moveSelectedDown,
+    clearSelection,
     undo,
     redo,
     modifiedJson
@@ -140,6 +147,13 @@ export function JsonEditor() {
                 data={nodes}
                 onNodeMove={moveNode}
                 onNodeToggle={toggleNode}
+                onNodeMoveUp={handleNodeMoveUp}
+                onNodeMoveDown={handleNodeMoveDown}
+                onNodeSelect={handleNodeSelect}
+                onMoveSelectedUp={moveSelectedUp}
+                onMoveSelectedDown={moveSelectedDown}
+                onClearSelection={clearSelection}
+                selectedNodes={selectedNodes}
               />
             </div>
             

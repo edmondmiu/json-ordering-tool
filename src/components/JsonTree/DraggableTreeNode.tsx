@@ -3,13 +3,19 @@
 import { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { ChevronDown, ChevronRight, Copy, Edit2, GripVertical } from 'lucide-react';
+import { ChevronDown, ChevronRight, Copy, Edit2, GripVertical, ChevronUp, ArrowUp, ArrowDown } from 'lucide-react';
 import { JsonNode } from '@/types';
 import { DropIndicator } from '@/components/ui/DropIndicator';
+import { canMoveUp, canMoveDown } from '@/utils/nodeMovement';
 
 interface DraggableTreeNodeProps {
   node: JsonNode;
+  allNodes: JsonNode[];
+  selectedNodes: Set<string>;
   onToggle: (nodeId: string) => void;
+  onMoveUp: (nodeId: string) => void;
+  onMoveDown: (nodeId: string) => void;
+  onSelect: (nodeId: string, selected: boolean) => void;
   searchTerm?: string;
   isLast?: boolean;
   depth?: number;
@@ -18,8 +24,13 @@ interface DraggableTreeNodeProps {
 }
 
 export function DraggableTreeNode({ 
-  node, 
-  onToggle, 
+  node,
+  allNodes,
+  selectedNodes,
+  onToggle,
+  onMoveUp,
+  onMoveDown,
+  onSelect,
   searchTerm, 
   isLast = false, 
   depth = 0,
@@ -108,6 +119,25 @@ export function DraggableTreeNode({
     navigator.clipboard.writeText(JSON.stringify(node.value, null, 2));
   };
 
+  const isSelected = selectedNodes.has(node.id);
+
+  const handleSelectToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.stopPropagation();
+    onSelect(node.id, e.target.checked);
+  };
+
+  const handleMoveUp = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onMoveUp(node.id);
+  };
+
+  const handleMoveDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onMoveDown(node.id);
+  };
+
+  const canMoveUpNode = canMoveUp(allNodes, node.id);
+  const canMoveDownNode = canMoveDown(allNodes, node.id);
   const isDropTarget = dragOverId === node.id;
 
   return (
@@ -130,10 +160,21 @@ export function DraggableTreeNode({
           ${isDragOverlay ? 'bg-blue-50 shadow-lg border border-blue-200' : 'hover:bg-gray-50'}
           ${isDragging ? 'z-50' : ''}
           ${isDropTarget ? 'bg-blue-50' : ''}
+          ${isSelected ? 'bg-blue-100 border border-blue-300' : ''}
         `}
         {...attributes}
         {...listeners}
       >
+        {/* Checkbox for Selection */}
+        <div className="flex items-center w-5 mr-1">
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={handleSelectToggle}
+            className="w-3 h-3 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          />
+        </div>
+
         {/* Indentation */}
         <div style={{ width: `${depth * 20}px` }} />
 
@@ -196,6 +237,22 @@ export function DraggableTreeNode({
         {/* Actions */}
         <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
+            onClick={handleMoveUp}
+            disabled={!canMoveUpNode}
+            className="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+            title="Move up"
+          >
+            <ArrowUp className="h-3 w-3 text-gray-500" />
+          </button>
+          <button
+            onClick={handleMoveDown}
+            disabled={!canMoveDownNode}
+            className="p-1 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+            title="Move down"
+          >
+            <ArrowDown className="h-3 w-3 text-gray-500" />
+          </button>
+          <button
             onClick={(e) => {
               e.stopPropagation();
               handleKeyEdit();
@@ -225,7 +282,12 @@ export function DraggableTreeNode({
             <DraggableTreeNode
               key={child.id}
               node={child}
+              allNodes={allNodes}
+              selectedNodes={selectedNodes}
               onToggle={onToggle}
+              onMoveUp={onMoveUp}
+              onMoveDown={onMoveDown}
+              onSelect={onSelect}
               searchTerm={searchTerm}
               isLast={index === node.children!.length - 1}
               depth={depth + 1}

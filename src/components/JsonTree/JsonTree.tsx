@@ -13,11 +13,24 @@ import {
 } from '@dnd-kit/sortable';
 import { JsonTreeProps } from '@/types';
 import { DraggableTreeNode } from './DraggableTreeNode';
+import { BulkActionBar } from './BulkActionBar';
 import { Button } from '@/components/ui/Button';
 import { useDragDrop, flattenNodesForDnd } from '@/hooks/useDragDrop';
 import { findNodeById, expandAllNodes, collapseAllNodes } from '@/utils/jsonUtils';
 
-export function JsonTree({ data, onNodeMove, onNodeToggle, searchTerm: initialSearchTerm }: JsonTreeProps) {
+export function JsonTree({ 
+  data, 
+  onNodeMove, 
+  onNodeToggle, 
+  onNodeMoveUp,
+  onNodeMoveDown,
+  onNodeSelect,
+  onMoveSelectedUp,
+  onMoveSelectedDown,
+  onClearSelection,
+  selectedNodes,
+  searchTerm: initialSearchTerm 
+}: JsonTreeProps) {
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm || '');
   const [showSearch, setShowSearch] = useState(false);
 
@@ -145,7 +158,12 @@ export function JsonTree({ data, onNodeMove, onNodeToggle, searchTerm: initialSe
                   <DraggableTreeNode
                     key={node.id}
                     node={node}
+                    allNodes={data}
+                    selectedNodes={selectedNodes}
                     onToggle={onNodeToggle}
+                    onMoveUp={onNodeMoveUp}
+                    onMoveDown={onNodeMoveDown}
+                    onSelect={onNodeSelect}
                     searchTerm={searchTerm}
                     isLast={index === filteredData.length - 1}
                     dragOverId={overId}
@@ -158,7 +176,12 @@ export function JsonTree({ data, onNodeMove, onNodeToggle, searchTerm: initialSe
               {activeNode ? (
                 <DraggableTreeNode
                   node={activeNode}
+                  allNodes={data}
+                  selectedNodes={selectedNodes}
                   onToggle={onNodeToggle}
+                  onMoveUp={onNodeMoveUp}
+                  onMoveDown={onNodeMoveDown}
+                  onSelect={onNodeSelect}
                   searchTerm={searchTerm}
                   isDragOverlay={true}
                 />
@@ -167,6 +190,14 @@ export function JsonTree({ data, onNodeMove, onNodeToggle, searchTerm: initialSe
           </DndContext>
         )}
       </div>
+      
+      {/* Bulk Action Bar */}
+      <BulkActionBar
+        selectedCount={selectedNodes.size}
+        onMoveUp={onMoveSelectedUp || (() => {})}
+        onMoveDown={onMoveSelectedDown || (() => {})}
+        onClearSelection={onClearSelection || (() => {})}
+      />
     </div>
   );
 }

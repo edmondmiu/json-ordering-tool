@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { JsonNode, JsonEditorState } from '@/types';
 import { parseJsonToNodes, validateJson, nodesToJson, generateId, moveNodeInTree } from '@/utils/jsonUtils';
+import { moveNodeUp, moveNodeDown, moveSelectedNodesUp, moveSelectedNodesDown } from '@/utils/nodeMovement';
 
 export function useJsonParser() {
   const [state, setState] = useState<JsonEditorState>({
@@ -10,7 +11,8 @@ export function useJsonParser() {
     history: [],
     currentHistoryIndex: -1,
     isValid: true,
-    errors: []
+    errors: [],
+    selectedNodes: new Set()
   });
 
   const parseJson = useCallback((jsonString: string) => {
@@ -34,7 +36,8 @@ export function useJsonParser() {
       history: [validation.parsed!],
       currentHistoryIndex: 0,
       isValid: true,
-      errors: []
+      errors: [],
+      selectedNodes: new Set<string>()
     };
 
     setState(newState);
@@ -117,6 +120,107 @@ export function useJsonParser() {
     });
   }, []);
 
+  const handleNodeMoveUp = useCallback((nodeId: string) => {
+    setState(prev => {
+      const newNodes = moveNodeUp(prev.nodes, nodeId);
+      const newJson = nodesToJson(newNodes);
+      
+      const newHistory = prev.history.slice(0, prev.currentHistoryIndex + 1);
+      newHistory.push(newJson);
+      
+      return {
+        ...prev,
+        nodes: newNodes,
+        modifiedJson: newJson,
+        history: newHistory,
+        currentHistoryIndex: newHistory.length - 1
+      };
+    });
+  }, []);
+
+  const handleNodeMoveDown = useCallback((nodeId: string) => {
+    setState(prev => {
+      const newNodes = moveNodeDown(prev.nodes, nodeId);
+      const newJson = nodesToJson(newNodes);
+      
+      const newHistory = prev.history.slice(0, prev.currentHistoryIndex + 1);
+      newHistory.push(newJson);
+      
+      return {
+        ...prev,
+        nodes: newNodes,
+        modifiedJson: newJson,
+        history: newHistory,
+        currentHistoryIndex: newHistory.length - 1
+      };
+    });
+  }, []);
+
+  const handleNodeSelect = useCallback((nodeId: string, selected: boolean) => {
+    setState(prev => {
+      const newSelectedNodes = new Set(prev.selectedNodes);
+      if (selected) {
+        newSelectedNodes.add(nodeId);
+      } else {
+        newSelectedNodes.delete(nodeId);
+      }
+      
+      return {
+        ...prev,
+        selectedNodes: newSelectedNodes
+      };
+    });
+  }, []);
+
+  const moveSelectedUp = useCallback(() => {
+    setState(prev => {
+      if (prev.selectedNodes.size === 0) return prev;
+      
+      const selectedIds = Array.from(prev.selectedNodes);
+      const newNodes = moveSelectedNodesUp(prev.nodes, selectedIds);
+      const newJson = nodesToJson(newNodes);
+      
+      const newHistory = prev.history.slice(0, prev.currentHistoryIndex + 1);
+      newHistory.push(newJson);
+      
+      return {
+        ...prev,
+        nodes: newNodes,
+        modifiedJson: newJson,
+        history: newHistory,
+        currentHistoryIndex: newHistory.length - 1
+      };
+    });
+  }, []);
+
+  const moveSelectedDown = useCallback(() => {
+    setState(prev => {
+      if (prev.selectedNodes.size === 0) return prev;
+      
+      const selectedIds = Array.from(prev.selectedNodes);
+      const newNodes = moveSelectedNodesDown(prev.nodes, selectedIds);
+      const newJson = nodesToJson(newNodes);
+      
+      const newHistory = prev.history.slice(0, prev.currentHistoryIndex + 1);
+      newHistory.push(newJson);
+      
+      return {
+        ...prev,
+        nodes: newNodes,
+        modifiedJson: newJson,
+        history: newHistory,
+        currentHistoryIndex: newHistory.length - 1
+      };
+    });
+  }, []);
+
+  const clearSelection = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      selectedNodes: new Set<string>()
+    }));
+  }, []);
+
   const canUndo = state.currentHistoryIndex > 0;
   const canRedo = state.currentHistoryIndex < state.history.length - 1;
 
@@ -126,6 +230,12 @@ export function useJsonParser() {
     updateNodes,
     toggleNode,
     moveNode,
+    handleNodeMoveUp,
+    handleNodeMoveDown,
+    handleNodeSelect,
+    moveSelectedUp,
+    moveSelectedDown,
+    clearSelection,
     undo,
     redo,
     canUndo,
